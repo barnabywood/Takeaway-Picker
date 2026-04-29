@@ -8,14 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    private let defaultChoices = [
+        "Indian",
+        "Chinese",
+        "Pizza",
+        "Fish and Chips",
+        "Burgers"
+    ]
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
-        }
-        .padding()
+        MainPickerView(choices: defaultChoices)
     }
 }
 
