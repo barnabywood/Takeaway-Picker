@@ -94,7 +94,7 @@ struct SlotMachineChrome<Content: View>: View {
                     statusDial(label: "EAT",  angle:  20 - dialProgress * 540, u: u)
                 }
 
-                Text("Pull the handle\nto pick tonight's takeaway")
+                Text("Pull the handle\nto pick tonight's dinner")
                     .font(.system(size: max(9, 11 * u), weight: .medium, design: .rounded))
                     .foregroundColor(.white.opacity(0.9))
                     .multilineTextAlignment(.center)

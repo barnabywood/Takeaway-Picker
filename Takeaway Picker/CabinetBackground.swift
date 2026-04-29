@@ -256,6 +256,9 @@ struct CabinetBackground: View {
                                     .shadow(color: .black.opacity(0.85), radius: 10, x: 0, y: 5)
                                     .shadow(color: Color(red: 1.0, green: 0.80, blue: 0.25).opacity(0.55), radius: 18, x: 0, y: 0)
                                     .tracking(max(0.5, 1.2 * u))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.62)
+                                    .allowsTightening(true)
                                     .padding(.horizontal, 22)
 
                                 // Bulb row (animated) sits clearly BELOW the title

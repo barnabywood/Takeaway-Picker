@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		B4C37D202F1848C500D754E0 /* Takeaway Picker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Takeaway Picker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B4C37D202F1848C500D754E0 /* Eat Something.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Eat Something.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,7 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				B4C37CF32F17C73300D754E0 /* Takeaway Picker */,
-				B4C37D202F1848C500D754E0 /* Takeaway Picker.app */,
+				B4C37D202F1848C500D754E0 /* Eat Something.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -58,8 +58,8 @@
 			name = "Takeaway Picker";
 			packageProductDependencies = (
 			);
-			productName = "Takeaway Picker";
-			productReference = B4C37D202F1848C500D754E0 /* Takeaway Picker.app */;
+			productName = "Eat Something";
+			productReference = B4C37D202F1848C500D754E0 /* Eat Something.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -248,9 +248,9 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Takeaway-Picker-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Takeaway Picker";
+				INFOPLIST_KEY_CFBundleDisplayName = "Eat Something";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Takeaway Picker uses your location to find nearby takeaways when you tap the location button";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Eat Something uses your location to find nearby restaurants when you tap the location button";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -266,7 +266,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.barnabywood.Takeaway-Picker";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Eat Something";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -297,9 +297,9 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Takeaway-Picker-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "Takeaway Picker";
+				INFOPLIST_KEY_CFBundleDisplayName = "Eat Something";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Takeaway Picker uses your location to find nearby takeaways when you tap the location button";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Eat Something uses your location to find nearby restaurants when you tap the location button";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -315,7 +315,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
 				MARKETING_VERSION = 3;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.barnabywood.Takeaway-Picker";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Eat Something";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

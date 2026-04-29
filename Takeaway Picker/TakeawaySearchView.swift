@@ -51,7 +51,7 @@ final class TakeawayLocationManager: NSObject, ObservableObject, CLLocationManag
 }
 
 struct TakeawaySearchView: View {
-    /// The chosen takeaway type, e.g. "Pizza", "Chinese".
+    /// The chosen dinner type, e.g. "Pizza", "Chinese".
     let chosenType: String
 
     @Environment(\.dismiss) private var dismiss
@@ -60,6 +60,7 @@ struct TakeawaySearchView: View {
     @StateObject private var locationManager = TakeawayLocationManager()
     @State private var restaurantName: String = ""
     @State private var locationText: String = ""
+    @State private var takeawayOnly: Bool = false
 
     private var isSearchEnabled: Bool {
         let trimmedName = restaurantName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -128,6 +129,28 @@ struct TakeawaySearchView: View {
                                 )
                         }
 
+                        Toggle(isOn: $takeawayOnly) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Takeaway only")
+                                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    .foregroundColor(Color("TextPrimary"))
+
+                                Text("Prefer restaurants that offer takeaway")
+                                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .tint(Color("AccentGreen"))
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color("SurfaceAlt").opacity(0.94))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
+                        )
+
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Location")
                                 .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -188,7 +211,7 @@ struct TakeawaySearchView: View {
                     .padding(.bottom, 20)
                 }
             }
-            .navigationTitle("Select local takeaway")
+            .navigationTitle("Select local restaurant")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -219,6 +242,10 @@ struct TakeawaySearchView: View {
 
         // Always include the chosen type to bias results, e.g. "Pizza"
         components.append(chosenType)
+
+        if takeawayOnly {
+            components.append("takeaway")
+        }
 
         if !trimmedLocation.isEmpty,
            trimmedLocation.lowercased() != "current location" {

@@ -70,8 +70,8 @@ struct SettingsView: View {
                 .ignoresSafeArea()
 
                 List {
-                    // Section: Takeaway options
-                    Section(header: Text("Takeaway options")) {
+                    // Section: Dinner options
+                    Section(header: Text("Dinner options")) {
                         ForEach(choices, id: \.self) { choice in
                             HStack {
                                 Text(choice)
@@ -90,7 +90,7 @@ struct SettingsView: View {
                         }
 
                         HStack {
-                            TextField("Add a new option (e.g. Sushi)", text: $newChoiceText)
+                            TextField("Add a new option (e.g. Pasta)", text: $newChoiceText)
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
 
@@ -110,7 +110,7 @@ struct SettingsView: View {
                             choices = defaultChoices
                             newChoiceText = ""
                         } label: {
-                            Label("Reset options to defaults", systemImage: "arrow.counterclockwise")
+                            Label("Reset dinner options to defaults", systemImage: "arrow.counterclockwise")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                         }
                         .tint(.red)
@@ -147,7 +147,7 @@ struct SettingsView: View {
 
                     // Section: Feedback and support
                     Section(header: Text("Feedback & support")) {
-                        if let feedbackURL = URL(string: "mailto:app.inventory.me@gmail.com?subject=Takeaway%20Picker") {
+                        if let feedbackURL = URL(string: "mailto:app.inventory.me@gmail.com?subject=Eat%20Something") {
                             Link(destination: feedbackURL) {
                                 Label("Send feedback", systemImage: "envelope")
                             }

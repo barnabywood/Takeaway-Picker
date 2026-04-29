@@ -8,16 +8,8 @@
 import SwiftUI
 
 struct ContentView: View {
-    private let defaultChoices = [
-        "Indian",
-        "Chinese",
-        "Pizza",
-        "Fish and Chips",
-        "Burgers"
-    ]
-
     var body: some View {
-        MainPickerView(choices: defaultChoices)
+        MainPickerView()
     }
 }
 

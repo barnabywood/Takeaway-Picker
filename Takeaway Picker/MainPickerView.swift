@@ -24,7 +24,7 @@ struct MainPickerView: View {
         "Chinese",
         "Pizza",
         "Fish and Chips",
-        "Burger",
+        "Burgers",
         "Chicken",
         "Thai",
         "Japanese"
@@ -110,7 +110,7 @@ struct MainPickerView: View {
     }
 
     private var shareMessage: String {
-        "Tonight's takeaway suggestion: \(currentChoice)\nReply with 👍 or 👎 and what you'd like to order."
+        "Tonight's dinner suggestion: \(currentChoice)\nReply with 👍 or 👎 and what you'd like to eat."
     }
 
     // MARK: - Layout model (single source of truth)
@@ -261,7 +261,7 @@ struct MainPickerView: View {
             ZStack {
                 // Geometry-driven cabinet background (scales cleanly across iPhone + iPad)
                 CabinetBackground(
-                    title: "Takeaway",
+                    title: "Eat Something",
                     reelWidth: layout.reelWidth
                 )
                 .ignoresSafeArea()
@@ -568,7 +568,7 @@ struct MainPickerView: View {
                         Button {
                             showTakeawaySearch = true
                         } label: {
-                            Label("Select a Local Takeaway", systemImage: "fork.knife.circle.fill")
+                            Label("Select a Local Restaurant", systemImage: "fork.knife.circle.fill")
                                 .font(.system(size: 13.5 * b, weight: .heavy, design: .rounded))
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12 * b)

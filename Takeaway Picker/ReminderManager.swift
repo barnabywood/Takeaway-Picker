@@ -8,8 +8,8 @@
 import Foundation
 import UserNotifications
 
-/// Handles local notifications for Takeaway Picker,
-/// such as the weekly "time to think about a takeaway" reminder.
+/// Handles local notifications for Eat Something,
+/// such as the weekly "time to think about dinner" reminder.
 struct ReminderManager {
 
     /// Shared instance for convenience.
@@ -49,7 +49,7 @@ struct ReminderManager {
 
         let content = UNMutableNotificationContent()
         content.title = "Time to think about tonight's dinner"
-        content.body = "Give the Takeaway Picker a spin and decide what to order."
+        content.body = "Give Eat Something a spin and decide what to eat."
         content.sound = .default
 
         var dateComponents = DateComponents()
