@@ -22,6 +22,16 @@ struct DinnerSpinnerView: View {
         return choices[currentIndex % choices.count]
     }
 
+    private var previousChoice: String {
+        guard !choices.isEmpty else { return "Dinner" }
+        return choices[(currentIndex - 1 + choices.count) % choices.count]
+    }
+
+    private var nextChoice: String {
+        guard !choices.isEmpty else { return "Dinner" }
+        return choices[(currentIndex + 1) % choices.count]
+    }
+
     var body: some View {
         GeometryReader { proxy in
             let wheelSize = min(proxy.size.width * 0.92, proxy.size.height * 0.66, 410)
@@ -32,8 +42,8 @@ struct DinnerSpinnerView: View {
 
                 ZStack {
                     DinnerPointer()
-                        .frame(width: wheelSize * 0.22, height: wheelSize * 0.18)
-                        .offset(y: -(wheelSize * 0.535))
+                        .frame(width: wheelSize * 0.25, height: wheelSize * 0.20)
+                        .offset(y: -(wheelSize * 0.54))
                         .zIndex(4)
 
                     DinnerWheel(
@@ -110,26 +120,6 @@ struct DinnerSpinnerView: View {
                             }
                             .shadow(color: .black.opacity(0.48), radius: 14, x: 0, y: 8)
                     }
-                    .overlay(alignment: .bottom) {
-                        if hasSpunOnce {
-                            Text(currentChoice)
-                                .font(.system(size: 16, weight: .black, design: .rounded))
-                                .tracking(1.1)
-                                .textCase(.uppercase)
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 8)
-                                .background(
-                                    Capsule(style: .continuous)
-                                        .fill(Color.black.opacity(0.55))
-                                        .overlay(
-                                            Capsule(style: .continuous)
-                                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                                        )
-                                )
-                                .offset(y: wheelSize * 0.13)
-                        }
-                    }
                     .scaleEffect(isSpinning ? 1.025 : 1)
                     .gesture(
                         DragGesture(minimumDistance: 14)
@@ -146,12 +136,104 @@ struct DinnerSpinnerView: View {
                     .accessibilityLabel("Dinner spinner")
                     .accessibilityHint("Swipe or tap the wheel to spin")
                 }
-                .frame(width: wheelSize, height: wheelSize + (hasSpunOnce ? wheelSize * 0.18 : 30))
+                .frame(width: wheelSize, height: wheelSize + 30)
+
+                if hasSpunOnce || isSpinning {
+                    DinnerChoiceTicker(
+                        previousChoice: previousChoice,
+                        currentChoice: currentChoice,
+                        nextChoice: nextChoice
+                    )
+                    .frame(width: min(wheelSize * 0.74, 290))
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .id(currentChoice)
+                }
 
                 Spacer(minLength: 0)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
+    }
+}
+
+private struct DinnerChoiceTicker: View {
+    let previousChoice: String
+    let currentChoice: String
+    let nextChoice: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Text(previousChoice)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.34))
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+
+            Text(currentChoice)
+                .font(.system(size: 25, weight: .black, design: .rounded))
+                .foregroundColor(.white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.56)
+                .padding(.vertical, 2)
+
+            Text(nextChoice)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundColor(.white.opacity(0.34))
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .padding(.horizontal, 22)
+        .padding(.vertical, 10)
+        .background {
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.black.opacity(0.76),
+                            Color(red: 0.14, green: 0.08, blue: 0.045).opacity(0.84)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.30),
+                                    Color(red: 1.0, green: 0.72, blue: 0.24).opacity(0.36),
+                                    Color.white.opacity(0.08)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+                .shadow(color: .black.opacity(0.36), radius: 16, x: 0, y: 8)
+        }
+        .overlay {
+            VStack {
+                LinearGradient(
+                    colors: [Color.black.opacity(0.42), Color.clear],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 20)
+
+                Spacer()
+
+                LinearGradient(
+                    colors: [Color.clear, Color.black.opacity(0.42)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 20)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        }
+        .animation(.snappy(duration: 0.18), value: currentChoice)
     }
 }
 
@@ -334,31 +416,102 @@ private struct DinnerWheel: View {
 
 private struct DinnerPointer: View {
     var body: some View {
-        Triangle()
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color.white,
-                        Color(red: 0.88, green: 0.89, blue: 0.92)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-            .shadow(color: .black.opacity(0.45), radius: 8, x: 0, y: 5)
-            .overlay {
-                Triangle()
-                    .stroke(Color.black.opacity(0.16), lineWidth: 1)
+        GeometryReader { proxy in
+            let width = proxy.size.width
+            let height = proxy.size.height
+            let jewelSize = min(width, height) * 0.32
+
+            ZStack {
+                RoulettePointer()
+                    .fill(Color.black.opacity(0.58))
+                    .blur(radius: 5)
+                    .offset(y: 5)
+
+                RoulettePointer()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white,
+                                Color(red: 0.98, green: 0.93, blue: 0.78),
+                                Color(red: 0.78, green: 0.70, blue: 0.54)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay {
+                        RoulettePointer()
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.92),
+                                        Color(red: 0.34, green: 0.22, blue: 0.10).opacity(0.72)
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: max(2, width * 0.035)
+                            )
+                    }
+                    .overlay(alignment: .topLeading) {
+                        Capsule(style: .continuous)
+                            .fill(Color.white.opacity(0.64))
+                            .frame(width: width * 0.34, height: height * 0.08)
+                            .blur(radius: 1.2)
+                            .offset(x: width * 0.26, y: height * 0.18)
+                    }
+
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.white,
+                                Color(red: 1.0, green: 0.82, blue: 0.32),
+                                Color(red: 0.42, green: 0.24, blue: 0.08)
+                            ],
+                            center: .topLeading,
+                            startRadius: 1,
+                            endRadius: jewelSize
+                        )
+                    )
+                    .frame(width: jewelSize, height: jewelSize)
+                    .overlay {
+                        Circle()
+                            .stroke(Color.black.opacity(0.26), lineWidth: max(1, width * 0.016))
+                    }
+                    .offset(y: -(height * 0.15))
+                    .shadow(color: Color(red: 1.0, green: 0.75, blue: 0.26).opacity(0.44), radius: 8)
             }
+        }
+        .shadow(color: .black.opacity(0.34), radius: 12, x: 0, y: 8)
     }
 }
 
-private struct Triangle: Shape {
+private struct RoulettePointer: Shape {
     func path(in rect: CGRect) -> Path {
         var path = Path()
+        let width = rect.width
+        let height = rect.height
         path.move(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addCurve(
+            to: CGPoint(x: rect.minX + width * 0.18, y: rect.minY + height * 0.30),
+            control1: CGPoint(x: rect.midX - width * 0.28, y: rect.maxY - height * 0.16),
+            control2: CGPoint(x: rect.minX + width * 0.06, y: rect.minY + height * 0.60)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX + width * 0.31, y: rect.minY + height * 0.08),
+            control: CGPoint(x: rect.minX + width * 0.18, y: rect.minY + height * 0.08)
+        )
+        path.addLine(to: CGPoint(x: rect.maxX - width * 0.31, y: rect.minY + height * 0.08))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX - width * 0.18, y: rect.minY + height * 0.30),
+            control: CGPoint(x: rect.maxX - width * 0.18, y: rect.minY + height * 0.08)
+        )
+        path.addCurve(
+            to: CGPoint(x: rect.midX, y: rect.maxY),
+            control1: CGPoint(x: rect.maxX - width * 0.06, y: rect.minY + height * 0.60),
+            control2: CGPoint(x: rect.midX + width * 0.28, y: rect.maxY - height * 0.16)
+        )
         path.closeSubpath()
         return path
     }

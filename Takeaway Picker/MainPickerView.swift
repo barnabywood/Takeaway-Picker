@@ -212,10 +212,10 @@ struct MainPickerView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 0) {
                             Text("Eat Something")
-                                .font(.system(size: 36, weight: .black, design: .rounded))
+                                .font(.system(size: 44, weight: .black, design: .rounded))
                                 .foregroundColor(.white)
                                 .lineLimit(1)
-                                .minimumScaleFactor(0.68)
+                                .minimumScaleFactor(0.58)
                         }
 
                         Spacer()

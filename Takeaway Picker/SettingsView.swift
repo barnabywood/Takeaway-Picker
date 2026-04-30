@@ -57,17 +57,7 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background using core app colours
-                LinearGradient(
-                    colors: [
-                        Color("Background"),
-                        Color("BrandPrimary").opacity(0.14),
-                        Color.black.opacity(0.70)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                DinnerSpinnerBackground()
 
                 List {
                     // Section: Dinner options
@@ -76,7 +66,7 @@ struct SettingsView: View {
                             HStack {
                                 Text(choice)
                                     .font(.system(size: 16, weight: .medium, design: .rounded))
-                                    .foregroundColor(Color("TextPrimary"))
+                                    .foregroundColor(.white)
                                 Spacer()
                                 Button {
                                     remove(choice: choice)
@@ -93,6 +83,7 @@ struct SettingsView: View {
                             TextField("Add a new option (e.g. Pasta)", text: $newChoiceText)
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
+                                .foregroundColor(.white)
 
                             Button {
                                 addNewChoice()
@@ -113,8 +104,9 @@ struct SettingsView: View {
                             Label("Reset dinner options to defaults", systemImage: "arrow.counterclockwise")
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                         }
-                        .tint(.red)
+                        .tint(Color(red: 1.0, green: 0.45, blue: 0.28))
                     }
+                    .listRowBackground(settingsRowBackground)
 
                     // Section: Reminders
                     Section(header: Text("Reminders")) {
@@ -122,9 +114,10 @@ struct SettingsView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Weekly reminder")
                                     .font(.system(size: 16, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white)
                                 Text("Choose the day and time to be reminded")
                                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.58))
                             }
                         }
                         .tint(Color("AccentGreen"))
@@ -144,6 +137,7 @@ struct SettingsView: View {
                             .datePickerStyle(.compact)
                         }
                     }
+                    .listRowBackground(settingsRowBackground)
 
                     // Section: Feedback and support
                     Section(header: Text("Feedback & support")) {
@@ -177,10 +171,11 @@ struct SettingsView: View {
                         }
                         .padding(.vertical, 4)
                     }
+                    .listRowBackground(settingsRowBackground)
                 }
                 .scrollContentBackground(.hidden)
                 .listStyle(.insetGrouped)
-                .listRowBackground(Color("SurfaceAlt").opacity(0.92))
+                .foregroundColor(.white)
                 .tint(Color("AccentGreen"))
             }
             .navigationTitle("Help & Settings")
@@ -227,6 +222,24 @@ struct SettingsView: View {
         .onChange(of: reminderMinute, initial: false) { _, _ in
             rescheduleReminderIfNeeded()
         }
+    }
+
+    private var settingsRowBackground: some View {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.70),
+                        Color(red: 0.16, green: 0.08, blue: 0.04).opacity(0.86)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color(red: 1.0, green: 0.76, blue: 0.30).opacity(0.22), lineWidth: 1)
+            )
     }
 
     private func rescheduleReminderIfNeeded() {

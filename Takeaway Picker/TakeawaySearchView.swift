@@ -75,92 +75,68 @@ struct TakeawaySearchView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background aligned to core app colours
-                LinearGradient(
-                    colors: [
-                        Color("Background"),
-                        Color("BrandPrimary").opacity(0.14),
-                        Color.black.opacity(0.70)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+                DinnerSpinnerBackground()
 
                 VStack(spacing: 20) {
                     // Context card
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Tonight's choice")
-                            .font(.system(size: 14, weight: .medium, design: .rounded))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 13, weight: .black, design: .rounded))
+                            .tracking(1.2)
+                            .textCase(.uppercase)
+                            .foregroundColor(Color(red: 1.0, green: 0.74, blue: 0.24))
 
                         Text(chosenType)
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                            .foregroundColor(Color("BrandPrimary"))
+                            .font(.system(size: 34, weight: .black, design: .rounded))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color("SurfaceAlt").opacity(0.94))
-                            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                    )
+                    .padding(20)
+                    .background(restaurantPanelBackground(cornerRadius: 28))
                     .padding(.horizontal)
 
                     // Input fields
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Restaurant name (optional)")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundColor(.white.opacity(0.72))
 
                             TextField("e.g. Roma Pizza", text: $restaurantName)
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
-                                .padding(12)
-                                .foregroundColor(Color("TextPrimary"))
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(Color("SurfaceAlt").opacity(0.94))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .stroke(Color.white.opacity(0.16), lineWidth: 1)
-                                )
+                                .padding(14)
+                                .foregroundColor(.white)
+                                .background(inputBackground)
                         }
 
                         Toggle(isOn: $takeawayOnly) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Takeaway only")
                                     .font(.system(size: 15, weight: .semibold, design: .rounded))
-                                    .foregroundColor(Color("TextPrimary"))
+                                    .foregroundColor(.white)
 
                                 Text("Prefer restaurants that offer takeaway")
                                     .font(.system(size: 12, weight: .regular, design: .rounded))
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.58))
                             }
                         }
                         .tint(Color("AccentGreen"))
-                        .padding(12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color("SurfaceAlt").opacity(0.94))
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color.white.opacity(0.16), lineWidth: 1)
-                        )
+                        .padding(14)
+                        .background(inputBackground)
 
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Location")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
-                                .foregroundColor(.secondary)
+                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .foregroundColor(.white.opacity(0.72))
 
                             HStack {
                                 TextField("Town, postcode or area", text: $locationText)
                                     .textInputAutocapitalization(.words)
                                     .disableAutocorrection(true)
-                                    .foregroundColor(Color("TextPrimary"))
+                                    .foregroundColor(.white)
 
                                 Button {
                                     // Request the user's current location.
@@ -173,22 +149,17 @@ struct TakeawaySearchView: View {
                                 } label: {
                                     Image(systemName: "location.fill")
                                         .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(Color("BrandPrimary"))
+                                        .foregroundColor(Color(red: 1.0, green: 0.74, blue: 0.24))
                                         .padding(.leading, 4)
                                 }
                                 .buttonStyle(.plain)
                             }
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color("SurfaceAlt").opacity(0.94))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(Color.white.opacity(0.16), lineWidth: 1)
-                            )
+                            .padding(14)
+                            .background(inputBackground)
                         }
                     }
+                    .padding(16)
+                    .background(restaurantPanelBackground(cornerRadius: 28))
                     .padding(.horizontal)
 
                     Spacer()
@@ -197,13 +168,33 @@ struct TakeawaySearchView: View {
                     Button {
                         performSearch()
                     } label: {
-                        Text("Search in Maps")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        Label("Search in Maps", systemImage: "map.fill")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .background(isSearchEnabled ? Color("AccentGreen") : Color.gray.opacity(0.5))
+                            .padding(.vertical, 15)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: isSearchEnabled
+                                                ? [
+                                                    Color("AccentGreen"),
+                                                    Color(red: 1.0, green: 0.62, blue: 0.12)
+                                                ]
+                                                : [
+                                                    Color.white.opacity(0.15),
+                                                    Color.white.opacity(0.08)
+                                                ],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
+                                    )
+                                    .overlay(
+                                        Capsule(style: .continuous)
+                                            .stroke(Color.white.opacity(0.20), lineWidth: 1)
+                                    )
+                            )
                             .foregroundColor(.white)
-                            .cornerRadius(18)
                             .shadow(color: .black.opacity(isSearchEnabled ? 0.25 : 0.0), radius: 6, x: 0, y: 3)
                     }
                     .disabled(!isSearchEnabled)
@@ -226,6 +217,44 @@ struct TakeawaySearchView: View {
                 }
             }
         }
+    }
+
+    private var inputBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(Color.black.opacity(0.40))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.white.opacity(0.16), lineWidth: 1)
+            )
+    }
+
+    private func restaurantPanelBackground(cornerRadius: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(
+                LinearGradient(
+                    colors: [
+                        Color.black.opacity(0.68),
+                        Color(red: 0.15, green: 0.07, blue: 0.04).opacity(0.88)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.18),
+                                Color(red: 1.0, green: 0.74, blue: 0.24).opacity(0.26)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.3
+                    )
+            )
+            .shadow(color: .black.opacity(0.36), radius: 18, x: 0, y: 10)
     }
 
     // MARK: - Actions
