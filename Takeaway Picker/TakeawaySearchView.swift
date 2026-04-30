@@ -104,7 +104,13 @@ struct RestaurantSearchView: View {
                                 .font(.system(size: 13, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.72))
 
-                            TextField("e.g. Roma Pizza", text: $restaurantName)
+                            TextField(
+                                text: $restaurantName,
+                                prompt: Text("e.g. Roma Pizza")
+                                    .foregroundColor(.white.opacity(0.52))
+                            ) {
+                                Text("e.g. Roma Pizza")
+                            }
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
                                 .padding(14)
@@ -133,7 +139,13 @@ struct RestaurantSearchView: View {
                                 .foregroundColor(.white.opacity(0.72))
 
                             HStack {
-                                TextField("Town, postcode or area", text: $locationText)
+                                TextField(
+                                    text: $locationText,
+                                    prompt: Text("Town, postcode or area")
+                                        .foregroundColor(.white.opacity(0.52))
+                                ) {
+                                    Text("Town, postcode or area")
+                                }
                                     .textInputAutocapitalization(.words)
                                     .disableAutocorrection(true)
                                     .foregroundColor(.white)
@@ -204,6 +216,9 @@ struct RestaurantSearchView: View {
             }
             .navigationTitle("Select local restaurant")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.hidden, for: .navigationBar)
+            .tint(.white)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
