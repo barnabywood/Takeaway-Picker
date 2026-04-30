@@ -210,15 +210,12 @@ struct MainPickerView: View {
 
                 VStack(spacing: 0) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: 0) {
                             Text("Eat Something")
-                                .font(.system(size: 26, weight: .heavy, design: .rounded))
+                                .font(.system(size: 36, weight: .black, design: .rounded))
                                 .foregroundColor(.white)
-
-                            Text(hasSpunOnce ? currentChoice : "Swipe the wheel")
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
-                                .foregroundColor(Color("AccentGreen"))
                                 .lineLimit(1)
+                                .minimumScaleFactor(0.68)
                         }
 
                         Spacer()
