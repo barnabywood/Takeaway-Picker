@@ -40,7 +40,7 @@ struct MainPickerView: View {
     @State private var dialProgress: Double = 0.0
     @State private var wheelRotation: Double = 0.0
     @State private var showSettings: Bool = false
-    @State private var showTakeawaySearch: Bool = false
+    @State private var showRestaurantSearch: Bool = false
 
     // MARK: - Review prompt (internal cadence)
 
@@ -243,7 +243,7 @@ struct MainPickerView: View {
                         }
 
                         Button {
-                            showTakeawaySearch = true
+                            showRestaurantSearch = true
                         } label: {
                             dinnerActionLabel(
                                 title: "Select a Local Restaurant",
@@ -304,8 +304,8 @@ struct MainPickerView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(choices: $choices, defaultChoices: Self.defaultChoices)
         }
-        .sheet(isPresented: $showTakeawaySearch) {
-            TakeawaySearchView(chosenType: currentChoice)
+        .sheet(isPresented: $showRestaurantSearch) {
+            RestaurantSearchView(chosenType: currentChoice)
         }
         .onChange(of: choices) { _, newValue in
             let userDefaults = UserDefaults.standard

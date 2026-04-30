@@ -1,6 +1,6 @@
 //
-//  TakeawaySearchView.swift
-//  Takeaway Picker
+//  RestaurantSearchView.swift
+//  Eat Something
 //
 //  Created by Barnaby Wood on 14/01/2026.
 //
@@ -10,7 +10,7 @@ import CoreLocation
 import Combine
 
 // Simple location manager for requesting the user's current location
-final class TakeawayLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class RestaurantLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
 
     @Published var currentCoordinate: CLLocationCoordinate2D?
@@ -50,14 +50,14 @@ final class TakeawayLocationManager: NSObject, ObservableObject, CLLocationManag
     }
 }
 
-struct TakeawaySearchView: View {
+struct RestaurantSearchView: View {
     /// The chosen dinner type, e.g. "Pizza", "Chinese".
     let chosenType: String
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 
-    @StateObject private var locationManager = TakeawayLocationManager()
+    @StateObject private var locationManager = RestaurantLocationManager()
     @State private var restaurantName: String = ""
     @State private var locationText: String = ""
     @State private var takeawayOnly: Bool = false
@@ -305,5 +305,5 @@ struct TakeawaySearchView: View {
 }
 
 #Preview {
-    TakeawaySearchView(chosenType: "Pizza")
+    RestaurantSearchView(chosenType: "Pizza")
 }

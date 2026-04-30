@@ -6,11 +6,16 @@
 //
 
 import Foundation
+import OSLog
 import UserNotifications
 
 /// Handles local notifications for Eat Something,
 /// such as the weekly "time to think about dinner" reminder.
 struct ReminderManager {
+
+    private static let logger = Logger(subsystem: "com.barnabywood.EatSomething", category: "reminders")
+    private static let weeklyReminderIdentifier = "EatSomethingWeeklyReminder"
+    private static let legacyWeeklyReminderIdentifier = "TakeawayWeeklyReminder"
 
     /// Shared instance for convenience.
     static let shared = ReminderManager()
@@ -44,8 +49,10 @@ struct ReminderManager {
     func scheduleWeeklyReminder(weekday: Int = 6, hour: Int = 17, minute: Int = 0) {
         let center = UNUserNotificationCenter.current()
 
-        // Remove any existing takeaway reminders before scheduling a new one.
-        center.removePendingNotificationRequests(withIdentifiers: ["TakeawayWeeklyReminder"])
+        center.removePendingNotificationRequests(withIdentifiers: [
+            Self.weeklyReminderIdentifier,
+            Self.legacyWeeklyReminderIdentifier
+        ])
 
         let content = UNMutableNotificationContent()
         content.title = "Time to think about tonight's dinner"
@@ -60,21 +67,24 @@ struct ReminderManager {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
 
         let request = UNNotificationRequest(
-            identifier: "TakeawayWeeklyReminder",
+            identifier: Self.weeklyReminderIdentifier,
             content: content,
             trigger: trigger
         )
 
         center.add(request) { error in
             if let error = error {
-                print("Failed to schedule takeaway reminder: \(error)")
+                Self.logger.error("Failed to schedule weekly reminder: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
 
-    /// Cancels the weekly takeaway reminder, if scheduled.
+    /// Cancels the weekly reminder, if scheduled.
     func cancelWeeklyReminder() {
         let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["TakeawayWeeklyReminder"])
+        center.removePendingNotificationRequests(withIdentifiers: [
+            Self.weeklyReminderIdentifier,
+            Self.legacyWeeklyReminderIdentifier
+        ])
     }
 }

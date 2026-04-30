@@ -153,7 +153,7 @@ struct SettingsView: View {
                             }
                         }
 
-                        if let privacyURL = URL(string: "https://raw.githubusercontent.com/barnabywood/Takeaway-Picker/main/README.md") {
+                        if let privacyURL = URL(string: "https://raw.githubusercontent.com/barnabywood/Takeaway-Picker/main/PRIVACY_POLICY.md") {
                             Link(destination: privacyURL) {
                                 Label("Privacy policy", systemImage: "lock.shield")
                             }
