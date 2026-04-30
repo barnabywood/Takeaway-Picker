@@ -209,36 +209,14 @@ struct MainPickerView: View {
                 DinnerSpinnerBackground()
 
                 VStack(spacing: 0) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("Eat Something")
-                                .font(.system(size: 44, weight: .black, design: .rounded))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.58)
-                        }
-
-                        Spacer()
-
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 20, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 46, height: 46)
-                                .background(
-                                    Circle()
-                                        .fill(Color.white.opacity(0.10))
-                                        .overlay(
-                                            Circle()
-                                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                                        )
-                                )
-                        }
-                    }
+                    Text("Eat Something")
+                        .font(.system(size: 44, weight: .black, design: .rounded))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.58)
+                        .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.horizontal, sideInset)
-                    .padding(.top, proxy.safeAreaInsets.top + 12)
+                    .padding(.top, proxy.safeAreaInsets.top + 14)
 
                     DinnerSpinnerView(
                         choices: choices,
@@ -251,6 +229,26 @@ struct MainPickerView: View {
                     .padding(.horizontal, sideInset)
 
                     Spacer(minLength: 0)
+                }
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 46, height: 46)
+                            .background(
+                                Circle()
+                                    .fill(Color.white.opacity(0.10))
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                    )
+                            )
+                    }
+                    .padding(.trailing, sideInset)
+                    .padding(.top, proxy.safeAreaInsets.top + 2)
                 }
                 .safeAreaInset(edge: .bottom) {
                     VStack(spacing: 10) {
