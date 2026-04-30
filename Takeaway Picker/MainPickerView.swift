@@ -295,7 +295,7 @@ struct MainPickerView: View {
                         }
                     }
                     .padding(.trailing, sideInset)
-                    .padding(.top, max(8, proxy.safeAreaInsets.top - 4))
+                    .padding(.top, max(8, proxy.safeAreaInsets.top * 0.38))
 
                     Spacer()
                 }
