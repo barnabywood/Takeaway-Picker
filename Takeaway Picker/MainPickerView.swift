@@ -230,26 +230,6 @@ struct MainPickerView: View {
 
                     Spacer(minLength: 0)
                 }
-                .overlay(alignment: .topTrailing) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 46, height: 46)
-                            .background(
-                                Circle()
-                                    .fill(Color.white.opacity(0.10))
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                                    )
-                            )
-                    }
-                    .padding(.trailing, sideInset)
-                    .padding(.top, proxy.safeAreaInsets.top + 2)
-                }
                 .safeAreaInset(edge: .bottom) {
                     VStack(spacing: 10) {
                         if #available(iOS 16.0, *) {
@@ -291,6 +271,33 @@ struct MainPickerView: View {
                     .frame(maxWidth: actionPanelMaxWidth)
                     .padding(.horizontal, sideInset)
                     .padding(.bottom, actionBottomPadding)
+                }
+
+                VStack {
+                    HStack {
+                        Spacer()
+
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    Circle()
+                                        .fill(Color.white.opacity(0.10))
+                                        .overlay(
+                                            Circle()
+                                                .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                                        )
+                                )
+                        }
+                    }
+                    .padding(.trailing, sideInset)
+                    .padding(.top, max(8, proxy.safeAreaInsets.top - 4))
+
+                    Spacer()
                 }
             }
         }
