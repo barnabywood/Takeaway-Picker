@@ -80,7 +80,13 @@ struct SettingsView: View {
                         }
 
                         HStack {
-                            TextField("Add a new option (e.g. Pasta)", text: $newChoiceText)
+                            TextField(
+                                text: $newChoiceText,
+                                prompt: Text("Add a new option (e.g. Pasta)")
+                                    .foregroundColor(.white.opacity(0.52))
+                            ) {
+                                Text("Add a new option (e.g. Pasta)")
+                            }
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
                                 .foregroundColor(.white)
