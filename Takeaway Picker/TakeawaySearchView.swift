@@ -50,6 +50,13 @@ final class RestaurantLocationManager: NSObject, ObservableObject, CLLocationMan
     }
 }
 
+private struct LocationCandidate: Identifiable {
+    let id = UUID()
+    let fieldValue: String
+    let detail: String
+    let coordinate: CLLocationCoordinate2D
+}
+
 struct RestaurantSearchView: View {
     /// The chosen dinner type, e.g. "Pizza", "Chinese".
     let chosenType: String
@@ -61,6 +68,11 @@ struct RestaurantSearchView: View {
     @State private var restaurantName: String = ""
     @State private var locationText: String = ""
     @State private var takeawayOnly: Bool = false
+    @State private var isResolvingLocation: Bool = false
+    @State private var locationSearchError: String?
+    @State private var locationCandidates: [LocationCandidate] = []
+    @State private var selectedLocationCandidate: LocationCandidate?
+    @State private var pendingSearchQuery: String?
 
     private var isSearchEnabled: Bool {
         let trimmedName = restaurantName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -149,10 +161,16 @@ struct RestaurantSearchView: View {
                                     .textInputAutocapitalization(.words)
                                     .disableAutocorrection(true)
                                     .foregroundColor(.white)
+                                    .onChange(of: locationText) { _, newValue in
+                                        if selectedLocationCandidate?.fieldValue != newValue.trimmingCharacters(in: .whitespacesAndNewlines) {
+                                            selectedLocationCandidate = nil
+                                        }
+                                    }
 
                                 Button {
                                     // Request the user's current location.
                                     locationManager.requestLocation()
+                                    selectedLocationCandidate = nil
 
                                     // Give a simple visual hint that "current location" is being used
                                     if locationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -180,7 +198,7 @@ struct RestaurantSearchView: View {
                     Button {
                         performSearch()
                     } label: {
-                        Label("Search in Maps", systemImage: "map.fill")
+                        Label(isResolvingLocation ? "Finding location..." : "Search in Maps", systemImage: "map.fill")
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
@@ -209,9 +227,18 @@ struct RestaurantSearchView: View {
                             .foregroundColor(.white)
                             .shadow(color: .black.opacity(isSearchEnabled ? 0.25 : 0.0), radius: 6, x: 0, y: 3)
                     }
-                    .disabled(!isSearchEnabled)
+                    .disabled(!isSearchEnabled || isResolvingLocation)
                     .padding(.horizontal)
                     .padding(.bottom, 20)
+                }
+
+                if !locationCandidates.isEmpty {
+                    LocationChoiceOverlay(
+                        candidates: locationCandidates,
+                        onSelect: selectLocationCandidate,
+                        onDismiss: { locationCandidates = [] }
+                    )
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
                 }
             }
             .navigationTitle("Select local restaurant")
@@ -219,6 +246,14 @@ struct RestaurantSearchView: View {
             .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbarBackground(.hidden, for: .navigationBar)
             .tint(.white)
+            .alert("Location not found", isPresented: Binding(
+                get: { locationSearchError != nil },
+                set: { if !$0 { locationSearchError = nil } }
+            )) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(locationSearchError ?? "")
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -291,23 +326,59 @@ struct RestaurantSearchView: View {
             components.append("takeaway")
         }
 
-        if !trimmedLocation.isEmpty,
-           trimmedLocation.lowercased() != "current location" {
-            components.append(trimmedLocation)
-        }
-
         let query = components.joined(separator: " ")
 
+        if !trimmedLocation.isEmpty,
+           trimmedLocation.lowercased() != "current location" {
+            if let selectedLocationCandidate,
+               selectedLocationCandidate.fieldValue == trimmedLocation {
+                openMapsSearch(query: query, coordinate: selectedLocationCandidate.coordinate)
+                return
+            }
+
+            isResolvingLocation = true
+            pendingSearchQuery = query
+            CLGeocoder().geocodeAddressString(trimmedLocation) { placemarks, _ in
+                let candidates = makeLocationCandidates(from: placemarks ?? [])
+
+                DispatchQueue.main.async {
+                    isResolvingLocation = false
+
+                    guard !candidates.isEmpty else {
+                        pendingSearchQuery = nil
+                        locationSearchError = "Try a more specific town, city, postcode or area."
+                        return
+                    }
+
+                    if candidates.count == 1, let candidate = candidates.first {
+                        selectedLocationCandidate = candidate
+                        locationText = candidate.fieldValue
+                        pendingSearchQuery = nil
+                        openMapsSearch(query: query, coordinate: candidate.coordinate)
+                        return
+                    }
+
+                    locationCandidates = candidates
+                }
+            }
+            return
+        }
+
+        openMapsSearch(query: query, coordinate: locationManager.currentCoordinate)
+    }
+
+    private func openMapsSearch(query: String, coordinate: CLLocationCoordinate2D?) {
         guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return
         }
 
         var urlString = "http://maps.apple.com/?q=\(encoded)"
 
-        if let coordinate = locationManager.currentCoordinate {
+        if let coordinate {
             // Use sll (search location) so Maps searches near the coordinate,
             // rather than treating the coordinate as the selected place.
             urlString += "&sll=\(coordinate.latitude),\(coordinate.longitude)"
+            urlString += "&sspn=0.25,0.25"
         }
 
         guard let url = URL(string: urlString) else {
@@ -316,6 +387,175 @@ struct RestaurantSearchView: View {
 
         openURL(url)
         // User can then pick the correct place, open the website or call from Maps.
+    }
+
+    private func selectLocationCandidate(_ candidate: LocationCandidate) {
+        selectedLocationCandidate = candidate
+        locationText = candidate.fieldValue
+        locationCandidates = []
+
+        if let pendingSearchQuery {
+            self.pendingSearchQuery = nil
+            openMapsSearch(query: pendingSearchQuery, coordinate: candidate.coordinate)
+        }
+    }
+
+    private func makeLocationCandidates(from placemarks: [CLPlacemark]) -> [LocationCandidate] {
+        var seenValues: Set<String> = []
+
+        return placemarks.compactMap { placemark in
+            guard let coordinate = placemark.location?.coordinate else {
+                return nil
+            }
+
+            let primary = [
+                placemark.locality,
+                placemark.name
+            ]
+                .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .first { !$0.isEmpty }
+
+            guard let primary else {
+                return nil
+            }
+
+            let detailParts = [
+                placemark.administrativeArea,
+                placemark.country
+            ]
+                .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty && $0 != primary }
+
+            let detail = detailParts.joined(separator: ", ")
+            let fieldValue = ([primary] + detailParts).joined(separator: ", ")
+
+            guard seenValues.insert(fieldValue).inserted else {
+                return nil
+            }
+
+            return LocationCandidate(
+                fieldValue: fieldValue,
+                detail: detail.isEmpty ? "Use this location" : detail,
+                coordinate: coordinate
+            )
+        }
+        .prefix(6)
+        .map { $0 }
+    }
+}
+
+private struct LocationChoiceOverlay: View {
+    let candidates: [LocationCandidate]
+    let onSelect: (LocationCandidate) -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.58)
+                .ignoresSafeArea()
+                .onTapGesture(perform: onDismiss)
+
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Which location?")
+                            .font(.system(size: 24, weight: .black, design: .rounded))
+                            .foregroundColor(.white)
+
+                        Text("Pick the closest match, or type more detail if it is not listed.")
+                            .font(.system(size: 13, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white.opacity(0.66))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer()
+
+                    Button(action: onDismiss) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundColor(.white.opacity(0.82))
+                            .frame(width: 34, height: 34)
+                            .background(Circle().fill(Color.white.opacity(0.12)))
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                VStack(spacing: 10) {
+                    ForEach(candidates) { candidate in
+                        Button {
+                            onSelect(candidate)
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "mappin.and.ellipse")
+                                    .font(.system(size: 17, weight: .bold))
+                                    .foregroundColor(Color(red: 1.0, green: 0.74, blue: 0.24))
+                                    .frame(width: 28)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(candidate.fieldValue)
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                        .foregroundColor(.white)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.78)
+
+                                    Text(candidate.detail)
+                                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                                        .foregroundColor(.white.opacity(0.58))
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .black))
+                                    .foregroundColor(.white.opacity(0.42))
+                            }
+                            .padding(14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .fill(Color.black.opacity(0.34))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                            .stroke(Color.white.opacity(0.14), lineWidth: 1)
+                                    )
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.16, green: 0.09, blue: 0.05).opacity(0.98),
+                                Color.black.opacity(0.96)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.20),
+                                        Color(red: 1.0, green: 0.74, blue: 0.24).opacity(0.32)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.4
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.42), radius: 28, x: 0, y: 18)
+            )
+            .padding(.horizontal, 22)
+        }
+        .animation(.spring(response: 0.34, dampingFraction: 0.84), value: candidates.count)
     }
 }
 
