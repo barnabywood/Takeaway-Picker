@@ -94,23 +94,6 @@ struct DinnerSpinnerView: View {
                                     .stroke(Color.black.opacity(0.80), lineWidth: max(6, wheelSize * 0.018))
                                     .padding(hubSize * 0.24)
                             }
-                            .overlay {
-                                ZStack {
-                                    Image(systemName: "fork.knife")
-                                        .font(.system(size: hubSize * 0.26, weight: .bold))
-                                        .foregroundColor(.black.opacity(hasSpunOnce || isSpinning ? 0.10 : 0.58))
-
-                                    if hasSpunOnce || isSpinning {
-                                        Text(currentChoice)
-                                            .font(.system(size: 25, weight: .black, design: .rounded))
-                                            .foregroundColor(.black)
-                                            .lineLimit(1)
-                                            .minimumScaleFactor(0.55)
-                                            .multilineTextAlignment(.center)
-                                            .padding(.horizontal, 12)
-                                    }
-                                }
-                            }
                             .overlay(alignment: .topLeading) {
                                 Circle()
                                     .fill(Color.white.opacity(0.42))
