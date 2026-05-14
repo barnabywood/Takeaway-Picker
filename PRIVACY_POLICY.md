@@ -2,7 +2,7 @@
 
 Effective date: 14 May 2026
 
-Eat Something helps you pick a dinner option, share the result when you choose, and search Apple Maps for nearby restaurants.
+Eat Something helps you pick a dinner option, share the result when you choose, and search Google Maps for nearby restaurants.
 
 ## 1. Information We Store
 
@@ -14,23 +14,23 @@ Eat Something stores the following information locally on your device:
 
 ## 2. How Information Is Used
 
-This information is used to provide the app's core features: choosing dinner ideas, remembering your custom options, scheduling optional local reminders, and deciding when to request an App Store rating.
+This information is used to provide the app's core features: choosing dinner ideas, remembering your custom options, scheduling optional local reminders, and deciding when to request a Google Play rating.
 
 ## 3. Location
 
-Eat Something only requests your current location when you tap the location button on the restaurant search screen. Location is used to open an Apple Maps restaurant search near you. The app does not store your precise location or send it to our own servers.
+Eat Something only requests your current location when you tap the location button on the restaurant search screen. Location is used to open a Google Maps restaurant search near you. The app does not store your precise location or send it to our own servers.
 
 ## 4. Typed Locations
 
-If you type a town, city, postcode, or area, the app may resolve that text into location choices so you can select the right place before searching. The selected location is used to open Apple Maps for the restaurant search.
+If you type a town, city, postcode, or area, the app may resolve that text into location choices so you can select the right place before searching. The selected location is used to open Google Maps for the restaurant search.
 
 ## 5. Notifications
 
-If you enable weekly reminders, the app schedules local notifications on your device. These reminders are managed by iOS and are not sent through our servers.
+If you enable weekly reminders, the app schedules local notifications on your device. These reminders are managed by Android and are not sent through our servers.
 
-## 6. Sharing and Apple Maps
+## 6. Sharing and Google Maps
 
-Eat Something does not share your dinner choices unless you choose to use the iOS share sheet. The app can open Apple Maps to search for restaurants. Apple Maps is provided by Apple and is subject to Apple's privacy practices.
+Eat Something does not share your dinner choices unless you choose to use the Android share sheet. The app can open Google Maps to search for restaurants. Google Maps is provided by Google and is subject to Google's privacy practices.
 
 ## 7. Analytics and Advertising
 
@@ -38,7 +38,7 @@ Eat Something does not include advertising SDKs, analytics SDKs, or third-party 
 
 ## 8. Retention and Deletion
 
-Your app settings and dinner options remain on your device until you change them, reset them, or uninstall the app. Uninstalling the app removes its local data, subject to normal iOS backup and device-management behaviour.
+Your app settings and dinner options remain on your device until you change them, reset them, or uninstall the app. Uninstalling the app removes its local data, subject to normal Android backup and device-management behaviour.
 
 ## 9. Children's Privacy
 
