@@ -8,6 +8,22 @@
 import SwiftUI
 import StoreKit
 
+enum MapsProvider: String, CaseIterable, Identifiable {
+    case apple
+    case google
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .apple:
+            "Apple Maps"
+        case .google:
+            "Google Maps"
+        }
+    }
+}
+
 struct SettingsView: View {
     // Binding so MainPickerView can pass in and persist the current choices
     @Binding var choices: [String]
@@ -32,6 +48,7 @@ struct SettingsView: View {
     @AppStorage("TakeawayReminderHour") private var reminderHour: Int = 17        // 17:00 by default
     @AppStorage("TakeawayReminderMinute") private var reminderMinute: Int = 0
     @AppStorage("TakeawayDidTapLeaveReview") private var didTapLeaveReview: Bool = false
+    @AppStorage("EatSomethingMapsProvider") private var preferredMapsProvider: String = MapsProvider.apple.rawValue
 
     private let weekdayNames = [
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
@@ -142,6 +159,29 @@ struct SettingsView: View {
                             )
                             .datePickerStyle(.compact)
                         }
+                    }
+                    .listRowBackground(settingsRowBackground)
+
+                    // Section: Maps
+                    Section(header: Text("Maps")) {
+                        VStack(alignment: .leading, spacing: 10) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Open restaurant searches in")
+                                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                                    .foregroundColor(.white)
+                                Text("Eat Something will keep using this choice until you change it.")
+                                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                                    .foregroundColor(.white.opacity(0.58))
+                            }
+
+                            Picker("Maps app", selection: $preferredMapsProvider) {
+                                ForEach(MapsProvider.allCases) { provider in
+                                    Text(provider.title).tag(provider.rawValue)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                        }
+                        .padding(.vertical, 4)
                     }
                     .listRowBackground(settingsRowBackground)
 

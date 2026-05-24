@@ -73,6 +73,7 @@ struct RestaurantSearchView: View {
     @State private var locationCandidates: [LocationCandidate] = []
     @State private var selectedLocationCandidate: LocationCandidate?
     @State private var pendingSearchQuery: String?
+    @AppStorage("EatSomethingMapsProvider") private var preferredMapsProvider: String = MapsProvider.apple.rawValue
 
     private var isSearchEnabled: Bool {
         let trimmedName = restaurantName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -82,6 +83,14 @@ struct RestaurantSearchView: View {
         let hasText = !trimmedName.isEmpty || locationCountsAsText
 
         return hasText || locationManager.currentCoordinate != nil
+    }
+
+    private var selectedMapsProvider: MapsProvider {
+        MapsProvider(rawValue: preferredMapsProvider) ?? .apple
+    }
+
+    private var searchButtonTitle: String {
+        isResolvingLocation ? "Finding location..." : "Search in \(selectedMapsProvider.title)"
     }
 
     var body: some View {
@@ -198,7 +207,7 @@ struct RestaurantSearchView: View {
                     Button {
                         performSearch()
                     } label: {
-                        Label(isResolvingLocation ? "Finding location..." : "Search in Maps", systemImage: "map.fill")
+                        Label(searchButtonTitle, systemImage: "map.fill")
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 15)
@@ -368,8 +377,30 @@ struct RestaurantSearchView: View {
     }
 
     private func openMapsSearch(query: String, coordinate: CLLocationCoordinate2D?) {
-        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let url = mapsURL(for: selectedMapsProvider, query: query, coordinate: coordinate) else {
             return
+        }
+
+        openURL(url)
+        // User can then pick the correct place, open the website or call from Maps.
+    }
+
+    private func mapsURL(
+        for provider: MapsProvider,
+        query: String,
+        coordinate: CLLocationCoordinate2D?
+    ) -> URL? {
+        switch provider {
+        case .apple:
+            return appleMapsURL(query: query, coordinate: coordinate)
+        case .google:
+            return googleMapsURL(query: query, coordinate: coordinate)
+        }
+    }
+
+    private func appleMapsURL(query: String, coordinate: CLLocationCoordinate2D?) -> URL? {
+        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return nil
         }
 
         var urlString = "http://maps.apple.com/?q=\(encoded)"
@@ -381,12 +412,21 @@ struct RestaurantSearchView: View {
             urlString += "&sspn=0.25,0.25"
         }
 
-        guard let url = URL(string: urlString) else {
-            return
+        return URL(string: urlString)
+    }
+
+    private func googleMapsURL(query: String, coordinate: CLLocationCoordinate2D?) -> URL? {
+        var googleQuery = query
+
+        if let coordinate {
+            googleQuery += " near \(coordinate.latitude),\(coordinate.longitude)"
         }
 
-        openURL(url)
-        // User can then pick the correct place, open the website or call from Maps.
+        guard let encoded = googleQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+            return nil
+        }
+
+        return URL(string: "https://www.google.com/maps/search/?api=1&query=\(encoded)")
     }
 
     private func selectLocationCandidate(_ candidate: LocationCandidate) {
