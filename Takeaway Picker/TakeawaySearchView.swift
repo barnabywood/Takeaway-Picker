@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 import Combine
+import UIKit
 
 // Simple location manager for requesting the user's current location
 final class RestaurantLocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -73,6 +74,7 @@ struct RestaurantSearchView: View {
     @State private var locationCandidates: [LocationCandidate] = []
     @State private var selectedLocationCandidate: LocationCandidate?
     @State private var pendingSearchQuery: String?
+    @State private var missingMapsProvider: MapsProvider?
     @AppStorage("EatSomethingMapsProvider") private var preferredMapsProvider: String = MapsProvider.apple.rawValue
 
     private var isSearchEnabled: Bool {
@@ -263,6 +265,17 @@ struct RestaurantSearchView: View {
             } message: {
                 Text(locationSearchError ?? "")
             }
+            .alert("Install \(missingMapsProvider?.title ?? "Maps")?", isPresented: Binding(
+                get: { missingMapsProvider != nil },
+                set: { if !$0 { missingMapsProvider = nil } }
+            )) {
+                Button("Not now", role: .cancel) { }
+                Button("Install") {
+                    openSelectedMapsInstallPage()
+                }
+            } message: {
+                Text("Your selected maps app is not installed. Install it or choose a different maps app in Help & Settings.")
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -377,7 +390,14 @@ struct RestaurantSearchView: View {
     }
 
     private func openMapsSearch(query: String, coordinate: CLLocationCoordinate2D?) {
-        guard let url = mapsURL(for: selectedMapsProvider, query: query, coordinate: coordinate) else {
+        let provider = selectedMapsProvider
+
+        guard isMapsProviderInstalled(provider) else {
+            missingMapsProvider = provider
+            return
+        }
+
+        guard let url = mapsURL(for: provider, query: query, coordinate: coordinate) else {
             return
         }
 
@@ -392,18 +412,33 @@ struct RestaurantSearchView: View {
     ) -> URL? {
         switch provider {
         case .apple:
-            return appleMapsURL(query: query, coordinate: coordinate)
+            return appleMapsURL(query: query, coordinate: coordinate, scheme: "maps")
         case .google:
             return googleMapsURL(query: query, coordinate: coordinate)
         }
     }
 
-    private func appleMapsURL(query: String, coordinate: CLLocationCoordinate2D?) -> URL? {
+    private func isMapsProviderInstalled(_ provider: MapsProvider) -> Bool {
+        switch provider {
+        case .apple:
+            guard let url = URL(string: "maps://") else { return false }
+            return UIApplication.shared.canOpenURL(url)
+        case .google:
+            guard let url = URL(string: "comgooglemaps://") else { return false }
+            return UIApplication.shared.canOpenURL(url)
+        }
+    }
+
+    private func appleMapsURL(
+        query: String,
+        coordinate: CLLocationCoordinate2D?,
+        scheme: String
+    ) -> URL? {
         guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
 
-        var urlString = "http://maps.apple.com/?q=\(encoded)"
+        var urlString = "\(scheme)://?q=\(encoded)"
 
         if let coordinate {
             // Use sll (search location) so Maps searches near the coordinate,
@@ -426,7 +461,26 @@ struct RestaurantSearchView: View {
             return nil
         }
 
-        return URL(string: "https://www.google.com/maps/search/?api=1&query=\(encoded)")
+        return URL(string: "comgooglemaps://?q=\(encoded)")
+    }
+
+    private func openSelectedMapsInstallPage() {
+        guard let provider = missingMapsProvider,
+              let url = mapsInstallURL(for: provider) else {
+            return
+        }
+
+        missingMapsProvider = nil
+        openURL(url)
+    }
+
+    private func mapsInstallURL(for provider: MapsProvider) -> URL? {
+        switch provider {
+        case .apple:
+            return URL(string: "https://apps.apple.com/app/apple-maps/id915056765")
+        case .google:
+            return URL(string: "https://apps.apple.com/app/google-maps/id585027354")
+        }
     }
 
     private func selectLocationCandidate(_ candidate: LocationCandidate) {
