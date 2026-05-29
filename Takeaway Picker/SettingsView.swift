@@ -22,6 +22,15 @@ enum MapsProvider: String, CaseIterable, Identifiable {
             "Google Maps"
         }
     }
+
+    var systemImage: String {
+        switch self {
+        case .apple:
+            "map.fill"
+        case .google:
+            "globe"
+        }
+    }
 }
 
 struct SettingsView: View {
@@ -174,12 +183,11 @@ struct SettingsView: View {
                                     .foregroundColor(.white.opacity(0.58))
                             }
 
-                            Picker("Maps app", selection: $preferredMapsProvider) {
+                            HStack(spacing: 8) {
                                 ForEach(MapsProvider.allCases) { provider in
-                                    Text(provider.title).tag(provider.rawValue)
+                                    mapsProviderButton(provider)
                                 }
                             }
-                            .pickerStyle(.segmented)
                         }
                         .padding(.vertical, 4)
                     }
@@ -286,6 +294,52 @@ struct SettingsView: View {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .stroke(Color(red: 1.0, green: 0.76, blue: 0.30).opacity(0.22), lineWidth: 1)
             )
+    }
+
+    private func mapsProviderButton(_ provider: MapsProvider) -> some View {
+        let isSelected = preferredMapsProvider == provider.rawValue
+
+        return Button {
+            withAnimation(.easeInOut(duration: 0.18)) {
+                preferredMapsProvider = provider.rawValue
+            }
+        } label: {
+            Label(provider.title, systemImage: provider.systemImage)
+                .font(.system(size: 14, weight: .black, design: .rounded))
+                .lineLimit(1)
+                .minimumScaleFactor(0.82)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .padding(.horizontal, 8)
+                .foregroundColor(isSelected ? .white : .white.opacity(0.68))
+                .background(
+                    Capsule(style: .continuous)
+                        .fill(
+                            isSelected
+                                ? LinearGradient(
+                                    colors: [
+                                        Color("AccentGreen"),
+                                        Color(red: 1.0, green: 0.62, blue: 0.12)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                                : LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.10),
+                                        Color.white.opacity(0.04)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                        )
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(Color.white.opacity(isSelected ? 0.24 : 0.14), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
     }
 
     private func rescheduleReminderIfNeeded() {
