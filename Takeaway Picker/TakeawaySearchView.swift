@@ -451,17 +451,20 @@ struct RestaurantSearchView: View {
     }
 
     private func googleMapsURL(query: String, coordinate: CLLocationCoordinate2D?) -> URL? {
-        var googleQuery = query
-
-        if let coordinate {
-            googleQuery += " near \(coordinate.latitude),\(coordinate.longitude)"
-        }
-
-        guard let encoded = googleQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
+        guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
 
-        return URL(string: "comgooglemaps://?q=\(encoded)")
+        var urlString = "comgooglemaps://?q=\(encoded)"
+
+        if let coordinate {
+            // Google Maps uses center as the search viewport. Putting coordinates
+            // into the query text can cause it to bias back to the user's location.
+            urlString += "&center=\(coordinate.latitude),\(coordinate.longitude)"
+            urlString += "&zoom=14"
+        }
+
+        return URL(string: urlString)
     }
 
     private func openSelectedMapsInstallPage() {
