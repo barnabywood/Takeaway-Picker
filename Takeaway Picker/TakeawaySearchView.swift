@@ -161,42 +161,46 @@ struct RestaurantSearchView: View {
                                 .font(.system(size: 13, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.72))
 
-                            HStack {
-                                TextField(
-                                    text: $locationText,
-                                    prompt: Text("Town, postcode or area")
-                                        .foregroundColor(.white.opacity(0.52))
-                                ) {
-                                    Text("Town, postcode or area")
-                                }
-                                    .textInputAutocapitalization(.words)
-                                    .disableAutocorrection(true)
-                                    .foregroundColor(.white)
-                                    .onChange(of: locationText) { _, newValue in
-                                        if selectedLocationCandidate?.fieldValue != newValue.trimmingCharacters(in: .whitespacesAndNewlines) {
-                                            selectedLocationCandidate = nil
-                                        }
+                            VStack(spacing: 10) {
+                                HStack {
+                                    TextField(
+                                        text: $locationText,
+                                        prompt: Text("Town, postcode or area")
+                                            .foregroundColor(.white.opacity(0.52))
+                                    ) {
+                                        Text("Town, postcode or area")
                                     }
+                                        .textInputAutocapitalization(.words)
+                                        .disableAutocorrection(true)
+                                        .foregroundColor(.white)
+                                        .onChange(of: locationText) { _, newValue in
+                                            if selectedLocationCandidate?.fieldValue != newValue.trimmingCharacters(in: .whitespacesAndNewlines) {
+                                                selectedLocationCandidate = nil
+                                            }
+                                        }
+                                }
+                                .padding(14)
+                                .background(inputBackground)
 
                                 Button {
-                                    // Request the user's current location.
-                                    locationManager.requestLocation()
-                                    selectedLocationCandidate = nil
-
-                                    // Give a simple visual hint that "current location" is being used
-                                    if locationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                        locationText = "Current location"
-                                    }
+                                    useCurrentLocation()
                                 } label: {
-                                    Image(systemName: "location.fill")
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(Color(red: 1.0, green: 0.74, blue: 0.24))
-                                        .padding(.leading, 4)
+                                    Label("Use Current Location", systemImage: "location.fill")
+                                        .font(.system(size: 14, weight: .black, design: .rounded))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 11)
+                                        .foregroundColor(.white)
+                                        .background(
+                                            Capsule(style: .continuous)
+                                                .fill(Color.white.opacity(0.10))
+                                        )
+                                        .overlay(
+                                            Capsule(style: .continuous)
+                                                .stroke(Color(red: 1.0, green: 0.74, blue: 0.24).opacity(0.28), lineWidth: 1)
+                                        )
                                 }
                                 .buttonStyle(.plain)
                             }
-                            .padding(14)
-                            .background(inputBackground)
                         }
                     }
                     .padding(16)
@@ -387,6 +391,12 @@ struct RestaurantSearchView: View {
         }
 
         openMapsSearch(query: query, coordinate: locationManager.currentCoordinate)
+    }
+
+    private func useCurrentLocation() {
+        locationManager.requestLocation()
+        selectedLocationCandidate = nil
+        locationText = "Current location"
     }
 
     private func openMapsSearch(query: String, coordinate: CLLocationCoordinate2D?) {
