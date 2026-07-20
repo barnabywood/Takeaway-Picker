@@ -14,6 +14,7 @@ struct MainPickerView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     private static let choicesStorageKey = "TakeawayChoices"
+    private static let restaurantChoicesStorageKey = "EatSomethingRestaurantChoices"
     private static let userEditedStorageKey = "TakeawayChoicesUserEdited"
     private static let defaultsHashStorageKey = "TakeawayChoicesDefaultsHash"
 
@@ -53,6 +54,8 @@ struct MainPickerView: View {
 
     // Choices are state-backed so SettingsView can edit them
     @State private var choices: [String]
+    @State private var restaurantChoices: [String]
+    @AppStorage("EatSomethingPickerMode") private var pickerModeRawValue: String = PickerMode.dinner.rawValue
 
     init() {
         self.init(choices: Self.defaultChoices)
@@ -66,6 +69,7 @@ struct MainPickerView: View {
         let userEdited = userDefaults.bool(forKey: Self.userEditedStorageKey)
         let savedDefaultsHash = userDefaults.string(forKey: Self.defaultsHashStorageKey)
         let savedChoices = userDefaults.stringArray(forKey: Self.choicesStorageKey) ?? []
+        let savedRestaurantChoices = userDefaults.stringArray(forKey: Self.restaurantChoicesStorageKey) ?? []
 
         // First run: nothing saved yet.
         if savedDefaultsHash == nil || savedChoices.isEmpty {
@@ -73,6 +77,7 @@ struct MainPickerView: View {
             userDefaults.set(defaults, forKey: Self.choicesStorageKey)
             userDefaults.set(defaultsHash, forKey: Self.defaultsHashStorageKey)
             userDefaults.set(false, forKey: Self.userEditedStorageKey)
+            _restaurantChoices = State(initialValue: savedRestaurantChoices)
             return
         }
 
@@ -89,28 +94,40 @@ struct MainPickerView: View {
             }
 
             userDefaults.set(defaultsHash, forKey: Self.defaultsHashStorageKey)
+            _restaurantChoices = State(initialValue: savedRestaurantChoices)
             return
         }
 
         // Defaults unchanged: load saved list.
         _choices = State(initialValue: savedChoices)
+        _restaurantChoices = State(initialValue: savedRestaurantChoices)
+    }
+
+    private var activeMode: PickerMode {
+        PickerMode(rawValue: pickerModeRawValue) ?? .dinner
+    }
+
+    private var activeChoices: [String] {
+        activeMode == .restaurant ? restaurantChoices : choices
     }
 
     private var currentChoice: String {
-        guard !choices.isEmpty else { return "Dinner" }
-        return choices[currentIndex % choices.count]
+        guard !activeChoices.isEmpty else {
+            return activeMode == .restaurant ? "Add a restaurant" : "Dinner"
+        }
+        return activeChoices[currentIndex % activeChoices.count]
     }
 
     private var previousChoice: String {
-        guard !choices.isEmpty else { return "Dinner" }
-        let index = (currentIndex - 1 + choices.count) % choices.count
-        return choices[index]
+        guard !activeChoices.isEmpty else { return currentChoice }
+        let index = (currentIndex - 1 + activeChoices.count) % activeChoices.count
+        return activeChoices[index]
     }
 
     private var nextChoice: String {
-        guard !choices.isEmpty else { return "Dinner" }
-        let index = (currentIndex + 1) % choices.count
-        return choices[index]
+        guard !activeChoices.isEmpty else { return currentChoice }
+        let index = (currentIndex + 1) % activeChoices.count
+        return activeChoices[index]
     }
 
     private var shareMessage: String {
@@ -219,7 +236,7 @@ struct MainPickerView: View {
                     .padding(.top, proxy.safeAreaInsets.top + 14)
 
                     DinnerSpinnerView(
-                        choices: choices,
+                        choices: activeChoices,
                         currentIndex: currentIndex,
                         rotation: wheelRotation,
                         isSpinning: isSpinning,
@@ -302,7 +319,12 @@ struct MainPickerView: View {
             }
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(choices: $choices, defaultChoices: Self.defaultChoices)
+            SettingsView(
+                choices: $choices,
+                restaurantChoices: $restaurantChoices,
+                pickerModeRawValue: $pickerModeRawValue,
+                defaultChoices: Self.defaultChoices
+            )
         }
         .sheet(isPresented: $showRestaurantSearch) {
             RestaurantSearchView(chosenType: currentChoice)
@@ -313,10 +335,23 @@ struct MainPickerView: View {
             userDefaults.set(newValue, forKey: Self.choicesStorageKey)
 
             // If the list changes, make sure the reel index is valid.
-            if currentIndex >= max(newValue.count, 1) {
+            if activeMode == .dinner, currentIndex >= max(newValue.count, 1) {
                 currentIndex = 0
                 reelOffset = 0
             }
+        }
+        .onChange(of: restaurantChoices) { _, newValue in
+            UserDefaults.standard.set(newValue, forKey: Self.restaurantChoicesStorageKey)
+
+            if activeMode == .restaurant, currentIndex >= max(newValue.count, 1) {
+                currentIndex = 0
+                reelOffset = 0
+            }
+        }
+        .onChange(of: pickerModeRawValue) { _, _ in
+            currentIndex = 0
+            reelOffset = 0
+            hasSpunOnce = false
         }
     }
 
@@ -358,13 +393,13 @@ struct MainPickerView: View {
     // MARK: - Spin logic
 
     private func roll() {
-        guard !isSpinning, !choices.isEmpty else { return }
+        guard !isSpinning, !activeChoices.isEmpty else { return }
         isSpinning = true
         trackSpinAndMaybeRequestReview()
         Haptics.lightTap()
         dialProgress = 0.0
 
-        let count = choices.count
+        let count = activeChoices.count
         let steps: Int
 
         if count <= 1 {

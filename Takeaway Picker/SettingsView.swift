@@ -33,9 +33,31 @@ enum MapsProvider: String, CaseIterable, Identifiable {
     }
 }
 
+enum PickerMode: String, CaseIterable, Identifiable {
+    case dinner
+    case restaurant
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .dinner: "Dinner Options"
+        case .restaurant: "Restaurant Options"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .dinner: "Spin through cuisines and dinner ideas."
+        case .restaurant: "Spin through your favourite places to eat."
+        }
+    }
+}
+
 struct SettingsView: View {
-    // Binding so MainPickerView can pass in and persist the current choices
     @Binding var choices: [String]
+    @Binding var restaurantChoices: [String]
+    @Binding var pickerModeRawValue: String
 
     // The app's default set of choices (from MainPickerView)
     let defaultChoices: [String]
@@ -50,6 +72,18 @@ struct SettingsView: View {
     private let appStoreAppID = "6757822919"
 
     @State private var newChoiceText: String = ""
+
+    private var pickerMode: PickerMode {
+        PickerMode(rawValue: pickerModeRawValue) ?? .dinner
+    }
+
+    private var activeChoices: [String] {
+        pickerMode == .dinner ? choices : restaurantChoices
+    }
+
+    private var optionPlaceholder: String {
+        pickerMode == .dinner ? "Add a new option (e.g. Pasta)" : "Add a favourite (e.g. Franco Manca)"
+    }
 
     // Reminder settings persisted via AppStorage
     @AppStorage("TakeawayReminderEnabled") private var isReminderEnabled: Bool = false
@@ -86,9 +120,40 @@ struct SettingsView: View {
                 DinnerSpinnerBackground()
 
                 List {
-                    // Section: Dinner options
-                    Section(header: Text("Dinner options")) {
-                        ForEach(choices, id: \.self) { choice in
+                    Section(header: Text("What do you want to spin?")) {
+                        Picker("Picker mode", selection: Binding(
+                            get: { pickerMode },
+                            set: {
+                                pickerModeRawValue = $0.rawValue
+                                newChoiceText = ""
+                            }
+                        )) {
+                            ForEach(PickerMode.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+
+                        Text(pickerMode.subtitle)
+                            .font(.system(size: 12, weight: .regular, design: .rounded))
+                            .foregroundColor(.white.opacity(0.58))
+                            .padding(.vertical, 2)
+                    }
+                    .listRowBackground(settingsRowBackground)
+
+                    Section(header: Text(pickerMode.title)) {
+                        if activeChoices.isEmpty {
+                            Label(
+                                pickerMode == .dinner
+                                    ? "Add a dinner option below to start spinning."
+                                    : "Add a favourite restaurant below to start spinning.",
+                                systemImage: "plus.circle"
+                            )
+                                .font(.system(size: 14, weight: .medium, design: .rounded))
+                                .foregroundColor(.white.opacity(0.66))
+                        }
+
+                        ForEach(activeChoices, id: \.self) { choice in
                             HStack {
                                 Text(choice)
                                     .font(.system(size: 16, weight: .medium, design: .rounded))
@@ -108,10 +173,10 @@ struct SettingsView: View {
                         HStack {
                             TextField(
                                 text: $newChoiceText,
-                                prompt: Text("Add a new option (e.g. Pasta)")
+                                prompt: Text(optionPlaceholder)
                                     .foregroundColor(.white.opacity(0.52))
                             ) {
-                                Text("Add a new option (e.g. Pasta)")
+                                Text(optionPlaceholder)
                             }
                                 .textInputAutocapitalization(.words)
                                 .disableAutocorrection(true)
@@ -129,14 +194,17 @@ struct SettingsView: View {
                         .padding(.vertical, 4)
 
                         Button {
-                            // Reset to the app defaults
-                            choices = defaultChoices
+                            resetActiveChoices()
                             newChoiceText = ""
                         } label: {
-                            Label("Reset dinner options to defaults", systemImage: "arrow.counterclockwise")
+                            Label(
+                                pickerMode == .dinner ? "Reset dinner options to defaults" : "Remove all restaurant options",
+                                systemImage: pickerMode == .dinner ? "arrow.counterclockwise" : "trash"
+                            )
                                 .font(.system(size: 14, weight: .semibold, design: .rounded))
                         }
                         .tint(Color(red: 1.0, green: 0.45, blue: 0.28))
+                        .disabled(pickerMode == .restaurant && restaurantChoices.isEmpty)
                     }
                     .listRowBackground(settingsRowBackground)
 
@@ -357,20 +425,38 @@ struct SettingsView: View {
         let trimmed = newChoiceText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         // Avoid duplicates (case-insensitive)
-        if !choices.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
-            choices.append(trimmed)
+        if !activeChoices.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) {
+            if pickerMode == .dinner {
+                choices.append(trimmed)
+            } else {
+                restaurantChoices.append(trimmed)
+            }
         }
         newChoiceText = ""
     }
 
     private func remove(choice: String) {
-        choices.removeAll { $0 == choice }
+        if pickerMode == .dinner {
+            choices.removeAll { $0 == choice }
+        } else {
+            restaurantChoices.removeAll { $0 == choice }
+        }
+    }
+
+    private func resetActiveChoices() {
+        if pickerMode == .dinner {
+            choices = defaultChoices
+        } else {
+            restaurantChoices = []
+        }
     }
 }
 
 #Preview {
     SettingsView(
         choices: .constant(["Indian", "Chinese", "Pizza", "Fish and Chips", "Burgers"]),
+        restaurantChoices: .constant(["Franco Manca", "Dishoom"]),
+        pickerModeRawValue: .constant(PickerMode.dinner.rawValue),
         defaultChoices: ["Indian", "Chinese", "Pizza", "Fish and Chips", "Burgers"]
     )
 }
