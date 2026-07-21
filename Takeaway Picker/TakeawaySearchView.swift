@@ -351,6 +351,9 @@ struct RestaurantSearchView: View {
         if isRestaurantMode {
             // Restaurant mode is a direct lookup of the selected favourite.
             components.append(trimmedName.isEmpty ? chosenType : trimmedName)
+            // Keep same-name non-food businesses out of the search as far as
+            // the Maps URL APIs allow by requiring a food-business category.
+            components.append("restaurant")
         } else {
             if !trimmedName.isEmpty {
                 components.append(trimmedName)
