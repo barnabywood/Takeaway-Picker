@@ -61,6 +61,7 @@ private struct LocationCandidate: Identifiable {
 struct RestaurantSearchView: View {
     /// The chosen dinner type, e.g. "Pizza", "Chinese".
     let chosenType: String
+    let isRestaurantMode: Bool
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -76,6 +77,12 @@ struct RestaurantSearchView: View {
     @State private var pendingSearchQuery: String?
     @State private var missingMapsProvider: MapsProvider?
     @AppStorage("EatSomethingMapsProvider") private var preferredMapsProvider: String = MapsProvider.apple.rawValue
+
+    init(chosenType: String, isRestaurantMode: Bool = false) {
+        self.chosenType = chosenType
+        self.isRestaurantMode = isRestaurantMode
+        _restaurantName = State(initialValue: isRestaurantMode ? chosenType : "")
+    }
 
     private var isSearchEnabled: Bool {
         let trimmedName = restaurantName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -123,7 +130,7 @@ struct RestaurantSearchView: View {
                     // Input fields
                     VStack(spacing: 16) {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text("Restaurant name (optional)")
+                            Text(isRestaurantMode ? "Restaurant name" : "Restaurant name (optional)")
                                 .font(.system(size: 13, weight: .bold, design: .rounded))
                                 .foregroundColor(.white.opacity(0.72))
 
@@ -341,12 +348,17 @@ struct RestaurantSearchView: View {
 
         var components: [String] = []
 
-        if !trimmedName.isEmpty {
-            components.append(trimmedName)
-        }
+        if isRestaurantMode {
+            // Restaurant mode is a direct lookup of the selected favourite.
+            components.append(trimmedName.isEmpty ? chosenType : trimmedName)
+        } else {
+            if !trimmedName.isEmpty {
+                components.append(trimmedName)
+            }
 
-        // Always include the chosen type to bias results, e.g. "Pizza"
-        components.append(chosenType)
+            // Dinner mode uses the chosen cuisine to bias nearby results.
+            components.append(chosenType)
+        }
 
         if takeawayOnly {
             components.append("takeaway")

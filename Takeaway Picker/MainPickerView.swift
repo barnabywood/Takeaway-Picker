@@ -259,11 +259,11 @@ struct MainPickerView: View {
                             .disabled(!actionsEnabled)
                         }
 
-                        Button {
+            Button {
                             showRestaurantSearch = true
                         } label: {
                             dinnerActionLabel(
-                                title: "Select a Local Restaurant",
+                                title: activeMode == .restaurant ? "Show Restaurant" : "Select a Local Restaurant",
                                 systemImage: "fork.knife.circle.fill"
                             )
                         }
@@ -327,7 +327,10 @@ struct MainPickerView: View {
             )
         }
         .sheet(isPresented: $showRestaurantSearch) {
-            RestaurantSearchView(chosenType: currentChoice)
+            RestaurantSearchView(
+                chosenType: currentChoice,
+                isRestaurantMode: activeMode == .restaurant
+            )
         }
         .onChange(of: choices) { _, newValue in
             let userDefaults = UserDefaults.standard
