@@ -47,7 +47,6 @@ struct DinnerSpinnerView: View {
                         .zIndex(4)
 
                     DinnerWheel(
-                        choices: choices,
                         colors: wheelColors
                     )
                     .rotationEffect(.degrees(rotation))
@@ -221,12 +220,15 @@ private struct DinnerChoiceTicker: View {
 }
 
 private struct DinnerWheel: View {
-    let choices: [String]
     let colors: [Color]
+
+    // The wheel is consistent chrome. The selected list drives the ticker and
+    // spin steps, not the number of visual pockets.
+    private let wheelSegmentCount = 8
 
     var body: some View {
         Canvas { context, size in
-            let count = max(choices.count, 1)
+            let count = wheelSegmentCount
             let rect = CGRect(origin: .zero, size: size)
             let center = CGPoint(x: rect.midX, y: rect.midY)
             let radius = min(size.width, size.height) / 2
