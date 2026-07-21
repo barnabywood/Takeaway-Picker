@@ -402,7 +402,11 @@ struct RestaurantSearchView: View {
             return
         }
 
-        openMapsSearch(query: query, coordinate: locationManager.currentCoordinate)
+        openMapsSearch(
+            query: query,
+            coordinate: locationManager.currentCoordinate,
+            nearbySearch: true
+        )
     }
 
     private func useCurrentLocation() {
@@ -411,7 +415,11 @@ struct RestaurantSearchView: View {
         locationText = "Current location"
     }
 
-    private func openMapsSearch(query: String, coordinate: CLLocationCoordinate2D?) {
+    private func openMapsSearch(
+        query: String,
+        coordinate: CLLocationCoordinate2D?,
+        nearbySearch: Bool = false
+    ) {
         let provider = selectedMapsProvider
 
         guard isMapsProviderInstalled(provider) else {
@@ -419,7 +427,12 @@ struct RestaurantSearchView: View {
             return
         }
 
-        guard let url = mapsURL(for: provider, query: query, coordinate: coordinate) else {
+        guard let url = mapsURL(
+            for: provider,
+            query: query,
+            coordinate: coordinate,
+            nearbySearch: nearbySearch
+        ) else {
             return
         }
 
@@ -430,13 +443,19 @@ struct RestaurantSearchView: View {
     private func mapsURL(
         for provider: MapsProvider,
         query: String,
-        coordinate: CLLocationCoordinate2D?
+        coordinate: CLLocationCoordinate2D?,
+        nearbySearch: Bool
     ) -> URL? {
         switch provider {
         case .apple:
-            return appleMapsURL(query: query, coordinate: coordinate, scheme: "maps")
+            return appleMapsURL(
+                query: query,
+                coordinate: coordinate,
+                scheme: "maps",
+                nearbySearch: nearbySearch
+            )
         case .google:
-            return googleMapsURL(query: query, coordinate: coordinate)
+            return googleMapsURL(query: query, coordinate: coordinate, nearbySearch: nearbySearch)
         }
     }
 
@@ -454,7 +473,8 @@ struct RestaurantSearchView: View {
     private func appleMapsURL(
         query: String,
         coordinate: CLLocationCoordinate2D?,
-        scheme: String
+        scheme: String,
+        nearbySearch: Bool
     ) -> URL? {
         guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
@@ -466,13 +486,18 @@ struct RestaurantSearchView: View {
             // Use sll (search location) so Maps searches near the coordinate,
             // rather than treating the coordinate as the selected place.
             urlString += "&sll=\(coordinate.latitude),\(coordinate.longitude)"
-            urlString += "&sspn=0.25,0.25"
+            // Current Location should stay local rather than opening a city-sized search area.
+            urlString += nearbySearch ? "&sspn=0.04,0.04" : "&sspn=0.25,0.25"
         }
 
         return URL(string: urlString)
     }
 
-    private func googleMapsURL(query: String, coordinate: CLLocationCoordinate2D?) -> URL? {
+    private func googleMapsURL(
+        query: String,
+        coordinate: CLLocationCoordinate2D?,
+        nearbySearch: Bool
+    ) -> URL? {
         guard let encoded = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
             return nil
         }
@@ -483,7 +508,7 @@ struct RestaurantSearchView: View {
             // Google Maps uses center as the search viewport. Putting coordinates
             // into the query text can cause it to bias back to the user's location.
             urlString += "&center=\(coordinate.latitude),\(coordinate.longitude)"
-            urlString += "&zoom=14"
+            urlString += "&zoom=\(nearbySearch ? 16 : 14)"
         }
 
         return URL(string: urlString)
